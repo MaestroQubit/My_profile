@@ -36,6 +36,69 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
+class ContactMessage(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    email: EmailStr
+    subject: str
+    message: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    status: str = Field(default="new")
+
+    @validator('name')
+    def name_must_be_valid(cls, v):
+        if len(v.strip()) < 2:
+            raise ValueError('Name must be at least 2 characters long')
+        if len(v.strip()) > 100:
+            raise ValueError('Name must be less than 100 characters')
+        return v.strip()
+
+    @validator('subject')
+    def subject_must_be_valid(cls, v):
+        if len(v.strip()) < 5:
+            raise ValueError('Subject must be at least 5 characters long')
+        if len(v.strip()) > 200:
+            raise ValueError('Subject must be less than 200 characters')
+        return v.strip()
+
+    @validator('message')
+    def message_must_be_valid(cls, v):
+        if len(v.strip()) < 10:
+            raise ValueError('Message must be at least 10 characters long')
+        if len(v.strip()) > 2000:
+            raise ValueError('Message must be less than 2000 characters')
+        return v.strip()
+
+class ContactMessageCreate(BaseModel):
+    name: str
+    email: EmailStr
+    subject: str
+    message: str
+
+    @validator('name')
+    def name_must_be_valid(cls, v):
+        if len(v.strip()) < 2:
+            raise ValueError('Name must be at least 2 characters long')
+        if len(v.strip()) > 100:
+            raise ValueError('Name must be less than 100 characters')
+        return v.strip()
+
+    @validator('subject')
+    def subject_must_be_valid(cls, v):
+        if len(v.strip()) < 5:
+            raise ValueError('Subject must be at least 5 characters long')
+        if len(v.strip()) > 200:
+            raise ValueError('Subject must be less than 200 characters')
+        return v.strip()
+
+    @validator('message')
+    def message_must_be_valid(cls, v):
+        if len(v.strip()) < 10:
+            raise ValueError('Message must be at least 10 characters long')
+        if len(v.strip()) > 2000:
+            raise ValueError('Message must be less than 2000 characters')
+        return v.strip()
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
