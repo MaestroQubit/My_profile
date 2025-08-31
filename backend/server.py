@@ -110,7 +110,6 @@ async def get_status_checks():
     status_checks = await db.status_checks.find().to_list(1000)
     return [StatusCheck(**status_check) for status_check in status_checks]
 
-# Contact Form Endpoints
 @api_router.post("/contact")
 async def submit_contact_form(contact_data: ContactMessageCreate):
     try:
