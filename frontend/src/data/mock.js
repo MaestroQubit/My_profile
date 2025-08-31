@@ -1,4 +1,4 @@
-export const mockData = {
+const portfolioData = {
   name: "Chirag Kumar",
   title: "Web Developer & CSE Student",
   tagline: "Enthusiastic beginner ready to code my way from scratch. Passionate about web development and problem-solving.",
@@ -89,3 +89,5 @@ export const mockData = {
     location: "India"
   }
 };
+
+export { portfolioData as mockData };
