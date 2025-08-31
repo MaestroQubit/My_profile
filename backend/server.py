@@ -141,7 +141,6 @@ async def get_contact_messages():
     try:
         messages = await db.contact_messages.find({}, {"_id": 0}).sort("timestamp", -1).to_list(100)
         
-        # Convert datetime objects to ISO format strings
         for message in messages:
             if "timestamp" in message and isinstance(message["timestamp"], datetime):
                 message["timestamp"] = message["timestamp"].isoformat()
