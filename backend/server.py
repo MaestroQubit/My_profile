@@ -116,6 +116,50 @@ async def get_status_checks():
     status_checks = await db.status_checks.find().to_list(1000)
     return [StatusCheck(**status_check) for status_check in status_checks]
 
+# Contact Form Endpoints
+@api_router.post("/contact")
+async def submit_contact_form(contact_data: ContactMessageCreate):
+    try:
+        # Create contact message object
+        contact_message = ContactMessage(**contact_data.dict())
+        
+        # Insert into database
+        result = await db.contact_messages.insert_one(contact_message.dict())
+        
+        if result.inserted_id:
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "success": True,
+                    "message": "Thank you for your message! I'll get back to you soon.",
+                    "data": {"id": contact_message.id}
+                }
+            )
+        else:
+            raise HTTPException(status_code=500, detail="Failed to save message")
+            
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error submitting contact form: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@api_router.get("/contact/messages")
+async def get_contact_messages():
+    """Get all contact messages - for admin use"""
+    try:
+        messages = await db.contact_messages.find().sort("timestamp", -1).to_list(100)
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "data": messages
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error fetching contact messages: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
 # Include the router in the main app
 app.include_router(api_router)
 
