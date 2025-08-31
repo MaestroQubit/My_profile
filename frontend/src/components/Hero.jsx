@@ -2,10 +2,10 @@ import React from 'react';
 import { Github, Linkedin, Mail, ChevronDown } from 'lucide-react';
 
 const Hero = ({ data }) => {
-  const scrollToAbout = () => {
-    const element = document.getElementById('about');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+  const handleScrollToAbout = () => {
+    const aboutSection = document.getElementById('about');
+    if (aboutSection) {
+      aboutSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -29,6 +29,7 @@ const Hero = ({ data }) => {
             <a 
               href={`mailto:${data.contact.email}`}
               className="p-3 bg-slate-800 hover:bg-emerald-500 text-slate-300 hover:text-white rounded-full transition-all duration-300 hover:scale-110"
+              aria-label="Send email"
             >
               <Mail size={24} />
             </a>
@@ -37,6 +38,7 @@ const Hero = ({ data }) => {
               target="_blank"
               rel="noopener noreferrer"
               className="p-3 bg-slate-800 hover:bg-emerald-500 text-slate-300 hover:text-white rounded-full transition-all duration-300 hover:scale-110"
+              aria-label="LinkedIn profile"
             >
               <Linkedin size={24} />
             </a>
@@ -45,6 +47,7 @@ const Hero = ({ data }) => {
               target="_blank"
               rel="noopener noreferrer"
               className="p-3 bg-slate-800 hover:bg-emerald-500 text-slate-300 hover:text-white rounded-full transition-all duration-300 hover:scale-110"
+              aria-label="GitHub profile"
             >
               <Github size={24} />
             </a>
@@ -52,7 +55,7 @@ const Hero = ({ data }) => {
 
           <div className="flex justify-center space-x-4 pt-8">
             <button 
-              onClick={scrollToAbout}
+              onClick={handleScrollToAbout}
               className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105"
             >
               View My Work
@@ -67,7 +70,11 @@ const Hero = ({ data }) => {
         </div>
 
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <button onClick={scrollToAbout} className="text-slate-400 hover:text-emerald-400 transition-colors">
+          <button 
+            onClick={handleScrollToAbout} 
+            className="text-slate-400 hover:text-emerald-400 transition-colors"
+            aria-label="Scroll to about section"
+          >
             <ChevronDown size={32} />
           </button>
         </div>

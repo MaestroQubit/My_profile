@@ -4,7 +4,7 @@ import { useToast } from '../hooks/use-toast';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API_BASE = `${BACKEND_URL}/api`;
 
 const Contact = ({ data }) => {
   const [formData, setFormData] = useState({
@@ -13,50 +13,61 @@ const Contact = ({ data }) => {
     subject: '',
     message: ''
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleInputChange = (e) => {
+  const updateFormField = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const resetForm = () => {
     setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
+      name: '',
+      email: '',
+      subject: '',
+      message: ''
     });
   };
 
-  const handleSubmit = async (e) => {
+  const submitContactForm = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setLoading(true);
     
     try {
-      const response = await axios.post(`${API}/contact`, formData);
+      const response = await axios.post(`${API_BASE}/contact`, formData);
       
       if (response.data.success) {
         toast({
           title: "Message Sent!",
           description: response.data.message,
         });
-        setFormData({ name: '', email: '', subject: '', message: '' });
+        resetForm();
       }
-    } catch (error) {
-      console.error('Contact form error:', error);
+    } catch (err) {
+      console.error('Contact form submission error:', err);
       
-      let errorMessage = "Failed to send message. Please try again.";
+      let errorMsg = "Failed to send message. Please try again.";
       
-      if (error.response?.data?.detail) {
-        if (typeof error.response.data.detail === 'string') {
-          errorMessage = error.response.data.detail;
-        } else if (Array.isArray(error.response.data.detail)) {
-          errorMessage = error.response.data.detail.map(err => err.msg || err).join(', ');
+      if (err.response?.data?.detail) {
+        const detail = err.response.data.detail;
+        if (typeof detail === 'string') {
+          errorMsg = detail;
+        } else if (Array.isArray(detail)) {
+          errorMsg = detail.map(error => error.msg || error).join(', ');
         }
       }
       
       toast({
         title: "Error",
-        description: errorMessage,
+        description: errorMsg,
         variant: "destructive"
       });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
@@ -74,7 +85,6 @@ const Contact = ({ data }) => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-12">
-          {/* Contact Information */}
           <div className="space-y-8">
             <div>
               <h3 className="text-2xl font-bold text-white mb-6">Let's Connect</h3>
@@ -150,10 +160,9 @@ const Contact = ({ data }) => {
             </div>
           </div>
 
-          {/* Contact Form */}
           <div className="bg-slate-800 rounded-xl p-8">
             <h3 className="text-2xl font-bold text-white mb-6">Send a Message</h3>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={submitContactForm} className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-slate-300 font-medium mb-2">
                   Your Name
@@ -163,7 +172,7 @@ const Contact = ({ data }) => {
                   id="name"
                   name="name"
                   value={formData.name}
-                  onChange={handleInputChange}
+                  onChange={updateFormField}
                   required
                   className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-colors"
                   placeholder="Enter your name"
@@ -179,7 +188,7 @@ const Contact = ({ data }) => {
                   id="email"
                   name="email"
                   value={formData.email}
-                  onChange={handleInputChange}
+                  onChange={updateFormField}
                   required
                   className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-colors"
                   placeholder="Enter your email"
@@ -195,7 +204,7 @@ const Contact = ({ data }) => {
                   id="subject"
                   name="subject"
                   value={formData.subject}
-                  onChange={handleInputChange}
+                  onChange={updateFormField}
                   required
                   className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-colors"
                   placeholder="What's this about?"
@@ -210,7 +219,7 @@ const Contact = ({ data }) => {
                   id="message"
                   name="message"
                   value={formData.message}
-                  onChange={handleInputChange}
+                  onChange={updateFormField}
                   required
                   rows={5}
                   className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-colors resize-none"
@@ -220,10 +229,10 @@ const Contact = ({ data }) => {
 
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={loading}
                 className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:scale-[1.02] disabled:hover:scale-100 flex items-center justify-center space-x-2"
               >
-                {isSubmitting ? (
+                {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
                     <span>Sending...</span>

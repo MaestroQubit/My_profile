@@ -11,16 +11,14 @@ from typing import List, Optional
 import uuid
 from datetime import datetime
 
-
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+mongo_connection_url = os.environ['MONGO_URL']
+mongo_client = AsyncIOMotorClient(mongo_connection_url)
+database = mongo_client[os.environ['DB_NAME']]
 
 app = FastAPI()
-
 api_router = APIRouter(prefix="/api")
 
 class StatusCheck(BaseModel):
@@ -41,119 +39,125 @@ class ContactMessage(BaseModel):
     status: str = Field(default="new")
 
     @validator('name')
-    def name_must_be_valid(cls, v):
-        if len(v.strip()) < 2:
+    def validate_name_length(cls, value):
+        cleaned_name = value.strip()
+        if len(cleaned_name) < 2:
             raise ValueError('Name must be at least 2 characters long')
-        if len(v.strip()) > 100:
+        if len(cleaned_name) > 100:
             raise ValueError('Name must be less than 100 characters')
-        return v.strip()
+        return cleaned_name
 
     @validator('subject')
-    def subject_must_be_valid(cls, v):
-        if len(v.strip()) < 5:
+    def validate_subject_length(cls, value):
+        cleaned_subject = value.strip()
+        if len(cleaned_subject) < 5:
             raise ValueError('Subject must be at least 5 characters long')
-        if len(v.strip()) > 200:
+        if len(cleaned_subject) > 200:
             raise ValueError('Subject must be less than 200 characters')
-        return v.strip()
+        return cleaned_subject
 
     @validator('message')
-    def message_must_be_valid(cls, v):
-        if len(v.strip()) < 10:
+    def validate_message_length(cls, value):
+        cleaned_message = value.strip()
+        if len(cleaned_message) < 10:
             raise ValueError('Message must be at least 10 characters long')
-        if len(v.strip()) > 2000:
+        if len(cleaned_message) > 2000:
             raise ValueError('Message must be less than 2000 characters')
-        return v.strip()
+        return cleaned_message
 
-class ContactMessageCreate(BaseModel):
+class ContactMessageRequest(BaseModel):
     name: str
     email: EmailStr
     subject: str
     message: str
 
     @validator('name')
-    def name_must_be_valid(cls, v):
-        if len(v.strip()) < 2:
+    def validate_name_length(cls, value):
+        cleaned_name = value.strip()
+        if len(cleaned_name) < 2:
             raise ValueError('Name must be at least 2 characters long')
-        if len(v.strip()) > 100:
+        if len(cleaned_name) > 100:
             raise ValueError('Name must be less than 100 characters')
-        return v.strip()
+        return cleaned_name
 
     @validator('subject')
-    def subject_must_be_valid(cls, v):
-        if len(v.strip()) < 5:
+    def validate_subject_length(cls, value):
+        cleaned_subject = value.strip()
+        if len(cleaned_subject) < 5:
             raise ValueError('Subject must be at least 5 characters long')
-        if len(v.strip()) > 200:
+        if len(cleaned_subject) > 200:
             raise ValueError('Subject must be less than 200 characters')
-        return v.strip()
+        return cleaned_subject
 
     @validator('message')
-    def message_must_be_valid(cls, v):
-        if len(v.strip()) < 10:
+    def validate_message_length(cls, value):
+        cleaned_message = value.strip()
+        if len(cleaned_message) < 10:
             raise ValueError('Message must be at least 10 characters long')
-        if len(v.strip()) > 2000:
+        if len(cleaned_message) > 2000:
             raise ValueError('Message must be less than 2000 characters')
-        return v.strip()
+        return cleaned_message
 
 @api_router.get("/")
-async def root():
+async def health_check():
     return {"message": "Hello World"}
 
 @api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
+async def create_status_check(request_data: StatusCheckCreate):
+    status_data = request_data.dict()
+    status_record = StatusCheck(**status_data)
+    await database.status_checks.insert_one(status_record.dict())
+    return status_record
 
 @api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
+async def fetch_status_checks():
+    status_records = await database.status_checks.find().to_list(1000)
+    return [StatusCheck(**record) for record in status_records]
 
 @api_router.post("/contact")
-async def submit_contact_form(contact_data: ContactMessageCreate):
+async def handle_contact_submission(contact_request: ContactMessageRequest):
     try:
-        contact_message = ContactMessage(**contact_data.dict())
+        contact_record = ContactMessage(**contact_request.dict())
         
-        result = await db.contact_messages.insert_one(contact_message.dict())
+        insert_result = await database.contact_messages.insert_one(contact_record.dict())
         
-        if result.inserted_id:
+        if insert_result.inserted_id:
             return JSONResponse(
                 status_code=200,
                 content={
                     "success": True,
                     "message": "Thank you for your message! I'll get back to you soon.",
-                    "data": {"id": contact_message.id}
+                    "data": {"id": contact_record.id}
                 }
             )
         else:
             raise HTTPException(status_code=500, detail="Failed to save message")
             
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"Error submitting contact form: {str(e)}")
+    except ValueError as validation_error:
+        raise HTTPException(status_code=400, detail=str(validation_error))
+    except Exception as server_error:
+        logger.error(f"Contact form submission error: {str(server_error)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @api_router.get("/contact/messages")
-async def get_contact_messages():
-    """Get all contact messages - for admin use"""
+async def fetch_contact_messages():
+    """Retrieve all contact messages for admin use"""
     try:
-        messages = await db.contact_messages.find({}, {"_id": 0}).sort("timestamp", -1).to_list(100)
+        message_records = await database.contact_messages.find({}, {"_id": 0}).sort("timestamp", -1).to_list(100)
         
-        for message in messages:
-            if "timestamp" in message and isinstance(message["timestamp"], datetime):
-                message["timestamp"] = message["timestamp"].isoformat()
+        for record in message_records:
+            if "timestamp" in record and isinstance(record["timestamp"], datetime):
+                record["timestamp"] = record["timestamp"].isoformat()
         
         return JSONResponse(
             status_code=200,
             content={
                 "success": True,
-                "data": messages
+                "data": message_records
             }
         )
-    except Exception as e:
-        logger.error(f"Error fetching contact messages: {str(e)}")
+    except Exception as fetch_error:
+        logger.error(f"Error retrieving contact messages: {str(fetch_error)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 app.include_router(api_router)
@@ -161,7 +165,7 @@ app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -173,5 +177,5 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+async def close_database_connection():
+    mongo_client.close()
