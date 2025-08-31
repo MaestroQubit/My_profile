@@ -164,10 +164,14 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Contact Form POST Endpoint"
-    - "Contact Form Validation"
-    - "Contact Messages Retrieval"
-    - "Database Storage Verification"
+    - "Contact Form Full-Stack Integration"
+    - "Header Navigation and Mobile Menu"
+    - "Hero Section Interactive Elements"
+    - "Responsive Design and Mobile View"
+    - "Portfolio Content Display"
+    - "Skills Section Progress Bars"
+    - "Projects Section Interactive Cards"
+    - "Footer Navigation Links"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
