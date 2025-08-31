@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
-import { Mail, Phone, Linkedin, Github, MapPin, Send, MessageCircle } from 'lucide-react';
+import { Mail, Phone, Linkedin, Github, MapPin, Send, MessageCircle, Loader2 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
+import axios from 'axios';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 const Contact = ({ data }) => {
   const [formData, setFormData] = useState({
