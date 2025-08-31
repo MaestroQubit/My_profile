@@ -156,7 +156,6 @@ async def get_contact_messages():
         logger.error(f"Error fetching contact messages: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-# Include the router in the main app
 app.include_router(api_router)
 
 app.add_middleware(
