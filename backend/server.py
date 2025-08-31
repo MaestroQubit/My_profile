@@ -23,8 +23,6 @@ app = FastAPI()
 
 api_router = APIRouter(prefix="/api")
 
-
-# Define Models
 class StatusCheck(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     client_name: str
