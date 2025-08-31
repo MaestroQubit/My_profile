@@ -115,13 +115,13 @@ class BackendTester:
                 timeout=10
             )
             
-            if response.status_code == 400:
+            if response.status_code == 422:  # FastAPI validation error
                 self.log_test("Contact Form - Invalid Name", True, 
                             "Correctly rejected short name", 
                             f"Response: {response.text}")
             else:
                 self.log_test("Contact Form - Invalid Name", False, 
-                            f"Expected 400 error, got {response.status_code}: {response.text}")
+                            f"Expected 422 error, got {response.status_code}: {response.text}")
                 
         except Exception as e:
             self.log_test("Contact Form - Invalid Name", False, f"Request failed: {str(e)}")
