@@ -94,7 +94,6 @@ class ContactMessageCreate(BaseModel):
             raise ValueError('Message must be less than 2000 characters')
         return v.strip()
 
-# Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
     return {"message": "Hello World"}
