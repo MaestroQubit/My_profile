@@ -113,10 +113,8 @@ async def get_status_checks():
 @api_router.post("/contact")
 async def submit_contact_form(contact_data: ContactMessageCreate):
     try:
-        # Create contact message object
         contact_message = ContactMessage(**contact_data.dict())
         
-        # Insert into database
         result = await db.contact_messages.insert_one(contact_message.dict())
         
         if result.inserted_id:
