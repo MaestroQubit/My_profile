@@ -2,6 +2,8 @@
 
 A modern, responsive portfolio website showcasing my skills, projects, and achievements as a Computer Science Engineering student and aspiring web developer.
 
+View the website here:- https://my-profile-em21.vercel.app/
+
 ## 🚀 Features
 
 - **Responsive Design**: Optimized for all devices and screen sizes
