@@ -3,7 +3,6 @@
 A modern, responsive portfolio website showcasing my skills, projects, and achievements as a Computer Science Engineering student and aspiring web developer.
 
 View the website here:- [https://my-profile-em21.vercel.app/](https://my-profile-taupe-gamma.vercel.app/)
-View the website here:- [[https://my-profile-em21.vercel.app/](https://my-profile-taupe-gamma.vercel.app/)](https://my-profile-taupe-gamma.vercel.app/)
 
 ## 🚀 Features
 
