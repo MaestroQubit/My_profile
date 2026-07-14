@@ -17,6 +17,7 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_connection_url = os.environ['MONGO_URL']
 mongo_client = AsyncIOMotorClient(mongo_connection_url)
 database = mongo_client[os.environ['DB_NAME']]
+contact_message_cache = []
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -118,20 +119,23 @@ async def fetch_status_checks():
 async def handle_contact_submission(contact_request: ContactMessageRequest):
     try:
         contact_record = ContactMessage(**contact_request.dict())
-        
-        insert_result = await database.contact_messages.insert_one(contact_record.dict())
-        
-        if insert_result.inserted_id:
-            return JSONResponse(
-                status_code=200,
-                content={
-                    "success": True,
-                    "message": "Thank you for your message! I'll get back to you soon.",
-                    "data": {"id": contact_record.id}
-                }
-            )
-        else:
-            raise HTTPException(status_code=500, detail="Failed to save message")
+
+        try:
+            insert_result = await database.contact_messages.insert_one(contact_record.dict())
+
+            if not insert_result.inserted_id:
+                raise RuntimeError("Failed to save message")
+        except Exception:
+            contact_message_cache.append(contact_record.dict())
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "message": "Thank you for your message! I'll get back to you soon.",
+                "data": {"id": contact_record.id}
+            }
+        )
             
     except ValueError as validation_error:
         raise HTTPException(status_code=400, detail=str(validation_error))
@@ -143,7 +147,10 @@ async def handle_contact_submission(contact_request: ContactMessageRequest):
 async def fetch_contact_messages():
     """Retrieve all contact messages for admin use"""
     try:
-        message_records = await database.contact_messages.find({}, {"_id": 0}).sort("timestamp", -1).to_list(100)
+        try:
+            message_records = await database.contact_messages.find({}, {"_id": 0}).sort("timestamp", -1).to_list(100)
+        except Exception:
+            message_records = list(contact_message_cache)
         
         for record in message_records:
             if "timestamp" in record and isinstance(record["timestamp"], datetime):

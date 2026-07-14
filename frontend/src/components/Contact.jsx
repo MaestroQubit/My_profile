@@ -3,8 +3,20 @@ import { Mail, Phone, Linkedin, Github, MapPin, Send, MessageCircle, Loader2 } f
 import { useToast } from '../hooks/use-toast';
 import axios from 'axios';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API_BASE = `${BACKEND_URL}/api`;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL?.trim();
+
+const buildApiBases = () => {
+  const bases = [];
+
+  if (BACKEND_URL) {
+    bases.push(`${BACKEND_URL.replace(/\/$/, '')}/api`);
+  }
+
+  bases.push(`${window.location.origin.replace(/\/$/, '')}/api`);
+  bases.push('http://localhost:8001/api');
+
+  return [...new Set(bases)];
+};
 
 const Contact = ({ data }) => {
   const [formData, setFormData] = useState({
@@ -38,15 +50,48 @@ const Contact = ({ data }) => {
     setLoading(true);
     
     try {
-      const response = await axios.post(`${API_BASE}/contact`, formData);
-      
-      if (response.data.success) {
+      let lastError = null;
+
+      for (const baseUrl of buildApiBases()) {
+        try {
+          const response = await axios.post(`${baseUrl}/contact`, formData, {
+            timeout: 10000,
+          });
+
+          if (response.data.success) {
+            toast({
+              title: "Message Sent!",
+              description: response.data.message,
+            });
+            resetForm();
+            return;
+          }
+        } catch (error) {
+          lastError = error;
+          const status = error.response?.status;
+
+          if (status && status !== 404) {
+            break;
+          }
+        }
+      }
+
+      const mailSubject = encodeURIComponent(formData.subject || 'Portfolio website message');
+      const mailBody = encodeURIComponent(
+        `Name: ${formData.name}\nEmail: ${formData.email}\n\n${formData.message}`,
+      );
+
+      if (data.contact.email) {
+        window.location.href = `mailto:${data.contact.email}?subject=${mailSubject}&body=${mailBody}`;
         toast({
-          title: "Message Sent!",
-          description: response.data.message,
+          title: "Open your mail app",
+          description: "No API backend was reachable, so I opened a pre-filled email draft instead.",
         });
         resetForm();
+        return;
       }
+
+      throw lastError || new Error('No contact endpoint was reachable');
     } catch (err) {
       console.error('Contact form submission error:', err);
       

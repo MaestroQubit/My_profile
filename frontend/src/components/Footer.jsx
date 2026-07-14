@@ -1,8 +1,9 @@
 import React from 'react';
 import { Heart, Github, Linkedin, Mail } from 'lucide-react';
 
-const Footer = () => {
+const Footer = ({ data }) => {
   const currentYear = new Date().getFullYear();
+  const contact = data?.contact || {};
 
   return (
     <footer className="bg-slate-900 border-t border-slate-800">
@@ -11,14 +12,14 @@ const Footer = () => {
           {/* Brand */}
           <div className="space-y-4">
             <div className="text-2xl font-bold text-emerald-400">
-              Chirag Kumar
+              {data?.name || 'Chirag Kumar'}
             </div>
             <p className="text-slate-400 leading-relaxed">
-              Web Developer & CSE Student passionate about creating meaningful digital experiences.
+              {data?.title || 'Web Developer & CSE Student'} passionate about creating meaningful digital experiences.
             </p>
             <div className="flex space-x-4">
               <a 
-                href="https://www.linkedin.com/in/chirag-kumar-a016b937b/"
+                href={contact.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-slate-400 hover:text-emerald-400 transition-colors"
@@ -26,7 +27,7 @@ const Footer = () => {
                 <Linkedin size={20} />
               </a>
               <a 
-                href="https://github.com/chiragkumar"
+                href={contact.github}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-slate-400 hover:text-emerald-400 transition-colors"
@@ -34,7 +35,7 @@ const Footer = () => {
                 <Github size={20} />
               </a>
               <a 
-                href="mailto:kchirag.gautam.xx@gmail.com"
+                href={`mailto:${contact.email}`}
                 className="text-slate-400 hover:text-emerald-400 transition-colors"
               >
                 <Mail size={20} />
@@ -78,13 +79,13 @@ const Footer = () => {
             <h3 className="text-white font-semibold text-lg">Get In Touch</h3>
             <div className="space-y-2">
               <p className="text-slate-400">
-                <span className="text-emerald-400">Email:</span> kchirag.gautam.xx@gmail.com
+                <span className="text-emerald-400">Email:</span> {contact.email}
               </p>
               <p className="text-slate-400">
-                <span className="text-emerald-400">Phone:</span> 74xxxxxx62
+                <span className="text-emerald-400">Phone:</span> {contact.phone}
               </p>
               <p className="text-slate-400">
-                <span className="text-emerald-400">Location:</span> India
+                <span className="text-emerald-400">Location:</span> {contact.location}
               </p>
             </div>
           </div>
@@ -94,7 +95,7 @@ const Footer = () => {
         <div className="border-t border-slate-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-slate-400 text-sm">
-              © {currentYear} Chirag Kumar. All rights reserved.
+              © {currentYear} {data?.name || 'Chirag Kumar'}. All rights reserved.
             </p>
             <div className="flex items-center space-x-2 text-slate-400 text-sm">
               <span>Made with</span>

@@ -21,7 +21,7 @@ const Portfolio = () => {
       <Education data={mockData} />
       <Achievements data={mockData} />
       <Contact data={mockData} />
-      <Footer />
+      <Footer data={mockData} />
     </div>
   );
 };
